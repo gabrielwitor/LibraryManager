@@ -2,7 +2,9 @@
 using LibraryManager.Models;
 using LibraryManager.Repository.Interface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace LibraryManager.Controllers
 {
@@ -31,7 +33,7 @@ namespace LibraryManager.Controllers
 
         [HttpGet]
         [Route("{id:int}")]
-        [ProducesResponseType(typeof(Book),StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Book), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetBookById([FromRoute] int id)
         {
@@ -75,12 +77,65 @@ namespace LibraryManager.Controllers
                 var createdBook = await bookRepository.AddBook(book);
 
                 return CreatedAtAction(nameof(GetBooks), new { id = createdBook.BookId }, createdBook);
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Error creating new book record");
             }
         }
+
+        [HttpDelete]
+        [Route("{bookId:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteBook([FromRoute] int bookId)
+        {
+            try
+            {
+                var bookToDelete = await bookRepository.GetBookById(bookId);
+                if (bookToDelete == null)
+                {
+                    return NotFound($"Book with Id = {bookId} not found");
+                }
+
+                bookRepository.DeleteBook(bookId);
+
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error deleting book record");
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut]
+        [Route("{bookId:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateBook([FromRoute] int bookId, [FromBody] Book book)
+        {
+            var bookToUpdate = await bookRepository.GetBookById(bookId);
+
+            if (bookToUpdate == null)
+            {
+                return NotFound($"Book with Id = {bookId} not found");
+            }
+
+            try
+            {
+                await bookRepository.UpdateBook(bookId, book);
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error updating book record");
+            }
+        }
+
     }
 }
 

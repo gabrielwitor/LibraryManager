@@ -7,5 +7,8 @@ namespace LibraryManager.Repository.Interface
         Task<IEnumerable<Book>> GetBooks();
         Task<Book> GetBookById(int bookId);
         Task<Book> AddBook(Book book);
+
+        Task<Book> UpdateBook(int bookId, Book book);
+        void DeleteBook(int bookId);
     }
 }

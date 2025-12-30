@@ -29,5 +29,27 @@ namespace LibraryManager.Repository.Services
         {
             return await appDbContext.Books.ToListAsync();
         }
+        public async void DeleteBook(int bookId)
+        {
+            var result = await appDbContext.Books.FirstOrDefaultAsync(b => b.BookId == bookId);
+            if (result != null)
+            {
+                appDbContext.Books.Remove(result);
+                await appDbContext.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Book> UpdateBook(int bookId, Book book)
+        {
+            var bookToUpdate = await appDbContext.Books.FirstOrDefaultAsync(b => b.BookId == bookId);
+
+            if (bookToUpdate == null) return null;
+
+            (bookToUpdate.Title, bookToUpdate.Author, bookToUpdate.Genre, bookToUpdate.Price, bookToUpdate.Stock) = (book.Title, book.Author, book.Genre, book.Price, book.Stock);
+
+            await appDbContext.SaveChangesAsync();
+
+            return bookToUpdate;
+        }
     }
 }
