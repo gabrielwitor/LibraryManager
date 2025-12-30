@@ -1,4 +1,5 @@
-﻿using LibraryManager.Models;
+﻿using LibraryManager.Data;
+using LibraryManager.Models;
 using LibraryManager.Repository.Interface;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections;
@@ -53,15 +54,24 @@ namespace LibraryManager.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(Book), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddBook([FromBody] Book book)
         {
+            if (book == null)
+            {
+                return BadRequest("The book information was not provided.");
+            }
+
+            var existingBook = await bookRepository.GetBookById(book.BookId);
+
+            if (existingBook != null)
+            {
+                return BadRequest("Cannot create a book with the provided id because it already exists");
+            }
+
             try
             {
-                if (book == null)
-                {
-                    return BadRequest();
-                }
-
                 var createdBook = await bookRepository.AddBook(book);
 
                 return CreatedAtAction(nameof(GetBooks), new { id = createdBook.BookId }, createdBook);
